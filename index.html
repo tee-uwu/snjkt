@@ -134,6 +134,37 @@
       touch-action:none;
     }
 
+
+    /* --- Mobile smoothness tweaks --- */
+    html, body { height: 100%; overscroll-behavior: none; }
+    body { -webkit-text-size-adjust: 100%; }
+    .stage{ contain: layout paint size; }
+    @media (max-width: 600px){
+      /* Use more of the screen on phones and avoid feeling "zoomed out" */
+      .stage{
+        aspect-ratio: auto;
+        height: min(72vh, 640px);
+        min-height: 360px;
+        max-height: none;
+      }
+      .controls{ gap:12px; }
+      button{ padding:12px 14px; border-radius:14px; }
+      .hint{ font-size:12px; }
+      /* Keep touch controls above iOS home bar */
+      .touchUI{
+        padding-bottom: env(safe-area-inset-bottom);
+        bottom: calc(10px + env(safe-area-inset-bottom));
+      }
+      .touchPad{
+        grid-template-columns: 48px 48px 48px;
+        grid-template-rows: 48px 48px 48px;
+      }
+      .tbtn{ width:48px; height:48px; border-radius:14px; }
+      .bigTouch{ height:48px; border-radius:14px; }
+      .touchBtns{ min-width: 150px; }
+    }
+
+
     .controls{
       display:flex;
       flex-wrap:wrap;
@@ -187,7 +218,6 @@
     }
     .panel h2{margin:0 0 8px; font-size:14px}
     .panel p{margin:0; color:var(--muted); font-size:13px; line-height:1.45}
-    .hud{ display:grid; gap:8px; margin-top:10px; }
     .pill{
       display:flex; justify-content:space-between; align-items:center;
       padding:10px 12px; border-radius:12px;
@@ -533,7 +563,13 @@
     cv.height = Math.floor(cssH * dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
-  window.addEventListener("resize", resizeCanvas);
+  let _rzTimer = null;
+  function scheduleResize(){
+    clearTimeout(_rzTimer);
+    _rzTimer = setTimeout(()=>requestAnimationFrame(resizeCanvas), 80);
+  }
+  window.addEventListener("resize", scheduleResize);
+  window.addEventListener("orientationchange", scheduleResize);
 
   // Assets
   const IMG = {};
@@ -574,7 +610,7 @@
   song.volume = 0.85;
 const batTone = new Audio("assets/batmantor_tone.mp3");
 batTone.loop = false;
-batTone.volume = 0.95;
+batTone.volume = 0.55;
 
 function safePlay(aud){
   try{
@@ -616,7 +652,7 @@ function playBatTone(){
   let confetti = [];
 
   const INTERACT_RANGE = 92;
-  const PICKUP_RANGE = 78;
+  const PICKUP_RANGE = 58;
 
   const touchMove = {up:false,down:false,left:false,right:false};
   let sprintOn = false;
@@ -974,8 +1010,15 @@ function playBatTone(){
 
   function scheduleNextBat(){
     const now = performance.now();
+    // Fewer Batmantor jumpscares (and none on the final stage)
     if(sceneIndex > 1) { nextBatAt = Infinity; return; }
-    nextBatAt = now + (6000 + Math.random()*8000);
+    // Only sometimes schedule a scare, and make the gap longer
+    const chance = 0.35; // 35% chance each cycle
+    if(Math.random() > chance){
+      nextBatAt = now + (14000 + Math.random()*14000); // 14–28s
+      return;
+    }
+    nextBatAt = now + (16000 + Math.random()*18000); // 16–34s
   }
 
   function intro(){
@@ -1189,8 +1232,8 @@ and gaaner kotha na hoy ajke baad e dilam 😌`),
     const radius = 120 + Math.random()*80;
     batX = clamp(player.x + Math.cos(angle)*radius, 70, 890);
     batY = clamp(player.y + Math.sin(angle)*radius, 90, 470);
-    batHideAt = performance.now() + 1700;
-    activateJinx(1800);
+    batHideAt = performance.now() + 900;
+    activateJinx(1200);
   }
 
   function step(t){
