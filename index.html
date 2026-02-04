@@ -1,0 +1,1341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Sonjukta’s Birthday Quest 🎂✨</title>
+  <style>
+    :root{
+      --bg:#0b1020; --ink:#eaf0ff; --muted:#aebbe6;
+      --line:rgba(255,255,255,.12);
+      --good:#35d07f; --warn:#ffd166; --bad:#ff4d6d;
+      --pad:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; padding:var(--pad);
+      background:
+        radial-gradient(900px 500px at 20% 0%, #1d2a66 0%, transparent 60%),
+        radial-gradient(900px 500px at 80% 0%, #4b1b67 0%, transparent 60%),
+        var(--bg);
+      color:var(--ink);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .shell{
+      width:min(1400px,100%);
+      margin:0 auto;
+      display:grid;
+      gap:14px;
+      grid-template-columns: 1fr;
+      align-items:start;
+    }
+    @media (max-width: 940px){
+      body{ padding:12px; }
+      .shell{ grid-template-columns:1fr; }
+      :root{ --pad:12px; }
+    }
+
+    .card{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border-radius:18px; overflow:hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    }
+
+    .top{
+      padding:14px 16px 10px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+    h1{margin:0; font-size:18px}
+    .sub{margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.35}
+    .tag{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:7px 10px; border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      color:var(--muted); font-size:12px; white-space:nowrap;
+    }
+    .tag.good{border-color:rgba(53,208,127,.35); color:#d7ffe9}
+    .tag.warn{border-color:rgba(255,209,102,.35); color:#fff1c6}
+    .tag.bad{border-color:rgba(255,77,109,.35); color:#ffd6de}
+
+    .progressWrap{ padding:0 16px 12px; display:grid; gap:8px; }
+    .pRow{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .pTitle{ color:rgba(255,255,255,.85); font-size:12px; font-weight:900; }
+    .pMeta{ color:var(--muted); font-size:12px; }
+    .bar{
+      height:12px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.07);
+      overflow:hidden;
+    }
+    .fill{
+      height:100%; width:0%;
+      background: linear-gradient(90deg, rgba(53,208,127,.85), rgba(255,209,102,.85), rgba(124,44,255,.85));
+      border-radius:999px;
+      transition: width .25s ease;
+    }
+
+    .gamewrap{ padding:0 16px 16px; display:grid; gap:12px; max-width:1100px; margin:0 auto; }
+    .stage{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: rgba(0,0,0,.20);
+      overflow:hidden;
+      position:relative;
+      aspect-ratio: 16 / 9;
+      width:100%;
+      /* Keep it big, but not "too big" on wide monitors */
+      max-height: 68vh;
+      min-height: 280px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    @media (max-width: 940px){
+      .gamewrap{ max-width: none; }
+      .stage{ max-height: 70vh; min-height: 320px; max-width: none; }
+      .top{ padding:12px 14px 8px; }
+      .progressWrap{ padding:0 14px 10px; }
+      .gamewrap{ padding:0 14px 14px; }
+    }
+
+    /* Compact HUD row (replaces the removed right-side module) */
+    .hud{
+      padding: 0 16px 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .chip{
+      display:flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.90);
+      font-size:12px;
+      font-weight:900;
+    }
+    .chip b{ color: var(--ink); font-weight:900; }
+    @media (max-width: 940px){
+      .hud{ padding: 0 14px 10px; }
+    }
+
+    canvas{
+      width:100%;
+      height:100%;
+      display:block;
+      image-rendering:pixelated;
+      touch-action:none;
+    }
+
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .btnrow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    button{
+      border:0; cursor:pointer;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:900;
+      color:var(--ink);
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      transition: transform .08s ease, filter .08s ease;
+      user-select:none;
+    }
+    button:hover{filter:brightness(1.1)}
+    button:active{transform:translateY(1px)}
+    button.primary{
+      background: linear-gradient(135deg, rgba(42,60,255,.92), rgba(124,44,255,.86));
+      border:0;
+      box-shadow: 0 12px 34px rgba(42,60,255,.22);
+    }
+    button.danger{
+      background: linear-gradient(135deg, rgba(255,77,109,.92), rgba(255,209,102,.70));
+      border:0;
+      box-shadow: 0 12px 34px rgba(255,77,109,.16);
+      color:#1a1020;
+    }
+    .hint{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+      text-align:right;
+      flex:1;
+      min-width:240px;
+    }
+    @media (max-width: 940px){
+      .hint{ text-align:left; min-width:auto; }
+    }
+
+    .side{ padding:16px; display:grid; gap:12px; }
+    .panel{
+      padding:14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.20);
+    }
+    .panel h2{margin:0 0 8px; font-size:14px}
+    .panel p{margin:0; color:var(--muted); font-size:13px; line-height:1.45}
+    .hud{ display:grid; gap:8px; margin-top:10px; }
+    .pill{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px 12px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color:var(--muted); font-size:13px;
+    }
+    .pill b{color:var(--ink)}
+
+    .dialogue{
+      position:absolute;
+      left:12px; right:12px; bottom:12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.56);
+      backdrop-filter: blur(8px);
+      padding:12px 12px 10px;
+      display:none;
+    }
+    .dialogue .who{
+      display:flex; justify-content:space-between; align-items:center;
+      gap:10px;
+      font-weight:900; font-size:13px; color:#fff;
+      opacity:.95; margin-bottom:6px;
+    }
+    .dialogue .text{
+      font-size:13px;
+      color:rgba(255,255,255,.92);
+      line-height:1.4;
+      white-space:pre-wrap;
+      min-height:44px;
+    }
+    .choices{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .choices button{ padding:8px 10px; border-radius:10px; }
+
+    .minigame{
+      position:absolute; inset:0;
+      display:none; align-items:center; justify-content:center;
+      background: rgba(0,0,0,.60);
+      backdrop-filter: blur(8px);
+      padding:16px;
+    }
+    .mgcard{
+      width:min(560px, 96%);
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(10,14,30,.86);
+      padding:14px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+    }
+    .mgcard h3{margin:0 0 8px; font-size:15px}
+    .mgcard p{margin:0 0 10px; color:var(--muted); font-size:13px; line-height:1.4}
+    .timing{
+      height:16px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.07);
+      overflow:hidden;
+      position:relative;
+      margin:10px 0 12px;
+    }
+    .zone{
+      position:absolute; top:0; bottom:0; width:28%; left:36%;
+      background: rgba(53,208,127,.25);
+      border-left:1px solid rgba(53,208,127,.5);
+      border-right:1px solid rgba(53,208,127,.5);
+    }
+    /* Dialogue portrait layout */
+.dlgGrid{
+  display:grid;
+  grid-template-columns: 92px 1fr;
+  gap:12px;
+  align-items:stretch;
+}
+
+.portrait{
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  overflow:hidden;
+  position:relative;
+  min-height:92px;
+}
+
+/* the image inside portrait (upper-half crop) */
+.portrait img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position: 50% 18%; /* <<< moves crop upward (upper half) */
+  image-rendering:pixelated;
+  display:block;
+  transform: scale(1.15);   /* <<< zoom a little so the face is bigger */
+}
+
+.dlgBody{ min-width:0; }
+
+/* phone: make portrait smaller */
+@media (max-width: 940px){
+  .dlgGrid{ grid-template-columns: 76px 1fr; gap:10px; }
+  .portrait{ min-height:76px; }
+}
+
+    .cursor{
+      position:absolute; top:0; bottom:0;
+      width:10px;
+      background: rgba(255,209,102,.9);
+      box-shadow: 0 0 16px rgba(255,209,102,.25);
+      left:0%;
+      transform: translateX(-50%);
+    }
+    .mgrow{display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center}
+    .mgstats{color:var(--muted); font-size:13px}
+
+    .touchUI{
+      position:absolute;
+      left:10px; right:10px; bottom:10px;
+      display:none;
+      gap:10px;
+      align-items:end;
+      justify-content:space-between;
+      pointer-events:none;
+    }
+    .touchPad, .touchBtns{ pointer-events:auto; }
+    .touchPad{
+      display:grid;
+      grid-template-columns: 52px 52px 52px;
+      grid-template-rows: 52px 52px 52px;
+      gap:8px;
+      padding:10px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.30);
+      backdrop-filter: blur(8px);
+    }
+    .tbtn{
+      width:52px; height:52px;
+      display:grid; place-items:center;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.10);
+      color:rgba(255,255,255,.90);
+      font-weight:900;
+      user-select:none;
+      touch-action:none;
+    }
+    .tbtn:active{ transform: translateY(1px); filter: brightness(1.1); }
+    .touchBtns{
+      display:grid;
+      gap:8px;
+      padding:10px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.30);
+      backdrop-filter: blur(8px);
+      min-width: 160px;
+    }
+    .bigTouch{
+      height:52px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.10);
+      color:rgba(255,255,255,.95);
+      font-weight:900;
+      display:flex; align-items:center; justify-content:center;
+      user-select:none;
+      touch-action:none;
+    }
+    .bigTouch.primary{
+      background: linear-gradient(135deg, rgba(42,60,255,.92), rgba(124,44,255,.86));
+      border:0;
+    }
+    .bigTouch.danger{
+      background: linear-gradient(135deg, rgba(255,77,109,.92), rgba(255,209,102,.70));
+      border:0; color:#1a1020;
+    }
+    @media (max-width: 940px){
+      .touchUI{ display:flex; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="card">
+      <div class="top">
+        <div>
+          <h1>Sonjukta’s Birthday Quest 🎂✨</h1>
+          <p class="sub">
+            3 scenes • collect items • talk • sing • get jinxed 😭<br>
+            PC: WASD/arrows • Sprint: Shift • Interact: E • Next: Space<br>
+            Phone: use on-screen controls at the bottom
+          </p>
+        </div>
+        <div class="tag warn" id="statusTag">⏳ Ready</div>
+      </div>
+
+      <div class="progressWrap">
+        <div class="pRow">
+          <div class="pTitle">Overall Progress</div>
+          <div class="pMeta" id="pMeta">0%</div>
+        </div>
+        <div class="bar"><div class="fill" id="pFill"></div></div>
+      </div>
+
+      <!-- Compact HUD (so the JS has the same IDs, but no right-side module) -->
+      <div class="hud" aria-label="Game stats">
+        <div class="chip">Scene: <b id="sceneLabel">1 / 3</b></div>
+        <div class="chip">Birthday Bits: <b id="bits">0 / 3</b></div>
+        <div class="chip">Memory Stars: <b id="stars">0 / 3</b></div>
+        <div class="chip">Mini-game: <b id="mgDone">not yet</b></div>
+        <div class="chip">Jinx: <b id="jinx">calm…</b></div>
+      </div>
+
+      <div class="gamewrap">
+        <div class="stage">
+          <canvas id="cv"></canvas>
+
+          <div class="dialogue" id="dialogue">
+  <div class="dlgGrid">
+    <div class="portrait" id="dlgPortrait"></div>
+
+    <div class="dlgBody">
+      <div class="who">
+        <span id="dlgWho">…</span>
+        <span class="tag">Next</span>
+      </div>
+      <div class="text" id="dlgText"></div>
+      <div class="choices" id="choices"></div>
+    </div>
+  </div>
+</div>
+
+
+          <div class="minigame" id="minigame">
+            <div class="mgcard">
+              <h3>🎤 Mini-Game: “Tap to Sing”</h3>
+              <p>
+                Tap/press <b>Space</b> when the cursor is in the green zone.
+                Need <b>5</b> good taps to win. 4 misses = retry.
+                If jinxed… it speeds up 😈
+              </p>
+              <div class="timing">
+                <div class="zone"></div>
+                <div class="cursor" id="cursor"></div>
+              </div>
+              <div class="mgrow">
+                <div class="mgstats" id="mgStats">Good: 0/5 • Miss: 0/4</div>
+                <div class="btnrow">
+                  <button id="mgQuit">Quit</button>
+                  <button class="primary" id="mgStart">Start</button>
+                  <button class="danger" id="mgTap">Tap 🎶</button>
+                </div>
+              </div>
+              <div class="mgstats" id="mgHint" style="margin-top:10px;"></div>
+            </div>
+          </div>
+
+          <div class="touchUI" id="touchUI">
+            <div class="touchPad">
+              <div></div><div class="tbtn" data-dir="up">▲</div><div></div>
+              <div class="tbtn" data-dir="left">◀</div><div class="tbtn" data-dir="down">▼</div><div class="tbtn" data-dir="right">▶</div>
+              <div></div><div></div><div></div>
+            </div>
+            <div class="touchBtns">
+              <div class="bigTouch primary" id="touchInteract">Interact (E)</div>
+              <div class="bigTouch" id="touchNext">Next (Space)</div>
+              <div class="bigTouch" id="touchSprint">Sprint: OFF</div>
+              <div class="bigTouch danger" id="touchJinx">Jinx 😈</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="btnrow">
+            <button class="primary" id="startBtn">Start Story</button>
+            <button id="restartBtn">Restart</button>
+            <button id="songBtn">Play Song ▶</button>
+            <button class="danger" id="jinxBtn">Jinx 😈</button>
+          </div>
+          <div class="hint" id="hint">Tip: walk near glowing things. On phone, tap the canvas to interact.</div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+<script>
+(() => {
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+
+  const statusTag = document.getElementById('statusTag');
+  const hint = document.getElementById('hint');
+
+  const startBtn = document.getElementById('startBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const jinxBtn = document.getElementById('jinxBtn');
+  const songBtn = document.getElementById('songBtn');
+
+  const sceneLabel = document.getElementById('sceneLabel');
+  const bitsEl = document.getElementById('bits');
+  const starsEl = document.getElementById('stars');
+  const mgDoneEl = document.getElementById('mgDone');
+  const jinxEl = document.getElementById('jinx');
+
+  const pFill = document.getElementById('pFill');
+  const pMeta = document.getElementById('pMeta');
+
+  const dlg = document.getElementById('dialogue');
+  const dlgWho = document.getElementById('dlgWho');
+  const dlgText = document.getElementById('dlgText');
+  const choicesEl = document.getElementById('choices');
+  const dlgPortrait = document.getElementById('dlgPortrait');
+
+
+  const mg = document.getElementById('minigame');
+  const cursorEl = document.getElementById('cursor');
+  const mgStats = document.getElementById('mgStats');
+  const mgHint = document.getElementById('mgHint');
+  const mgStartBtn = document.getElementById('mgStart');
+  const mgQuitBtn = document.getElementById('mgQuit');
+  const mgTapBtn = document.getElementById('mgTap');
+
+  const touchInteract = document.getElementById('touchInteract');
+  const touchNext = document.getElementById('touchNext');
+  const touchSprint = document.getElementById('touchSprint');
+  const touchJinx = document.getElementById('touchJinx');
+
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+  const dist = (ax,ay,bx,by)=>Math.hypot(ax-bx, ay-by);
+  const rect = (x,y,w,h)=>({x,y,w,h});
+  const aabb = (a,b)=> a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+
+  const BASE_W = 960, BASE_H = 540;
+
+  function resizeCanvas(){
+    const dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
+    const cssW = cv.clientWidth;
+    const cssH = cv.clientHeight;
+    cv.width = Math.floor(cssW * dpr);
+    cv.height = Math.floor(cssH * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener("resize", resizeCanvas);
+
+  // Assets
+  const IMG = {};
+  function loadImg(key, src){
+    return new Promise((res) => {
+      const im = new Image();
+      im.src = src;
+      im.onload = () => { IMG[key]=im; res(true); };
+      im.onerror = () => { IMG[key]=null; res(false); };
+    });
+  }
+  async function loadAllAssets(){
+    await Promise.all([
+      loadImg("bg1", "assets/bg_scene1.png"),
+      loadImg("bg2", "assets/bg_scene2.png"),
+      loadImg("bg3", "assets/bg_scene3.png"),
+      loadImg("son", "assets/sonjukta.png"),
+      loadImg("tee", "assets/tee.png"),
+      loadImg("gregor", "assets/gregor.png"),
+      loadImg("bat", "assets/batmantor.png"),
+      loadImg("bit", "assets/bit.png"),
+      loadImg("mstar", "assets/memorystar.png"),
+    ]);
+    const missing = [];
+    const map = {
+      bg1:"bg_scene1.png", bg2:"bg_scene2.png", bg3:"bg_scene3.png",
+      son:"sonjukta.png", tee:"tee.png", gregor:"gregor.png", bat:"batmantor.png",
+      bit:"bit.png",
+      mstar:"memorystar.png"
+    };
+    for(const k of Object.keys(map)) if(!IMG[k]) missing.push(map[k]);
+    return missing;
+  }
+
+  // Audio
+  const song = new Audio("assets/sonjukta_song.mp3");
+  song.loop = true;
+  song.volume = 0.85;
+const batTone = new Audio("assets/batmantor_tone.mp3");
+batTone.loop = false;
+batTone.volume = 0.95;
+
+function safePlay(aud){
+  try{
+    aud.currentTime = 0;
+    const p = aud.play();
+    if(p && typeof p.catch === "function") p.catch(()=>{});
+  }catch{}
+}
+
+function playSongOnce(){
+  // Play Sonjukta's song for the "singing" moments
+  song.loop = false;
+  safePlay(song);
+  songBtn.textContent = "Pause Song ⏸";
+  song.onended = () => { songBtn.textContent = "Play Song ▶"; };
+}
+
+function playBatTone(){
+  safePlay(batTone);
+}
+
+  async function toggleSong(){
+    try{
+      if(song.paused){ await song.play(); songBtn.textContent = "Pause Song ⏸"; }
+      else { song.pause(); songBtn.textContent = "Play Song ▶"; }
+    } catch { songBtn.textContent = "Tap again ▶"; }
+  }
+  songBtn.addEventListener("click", toggleSong);
+
+  // State
+  let started = false;
+  let sceneIndex = 0;
+  let bits = 0;
+  let stars = 0;
+  let minigameWon = false;
+
+  let jinxedUntil = 0;
+  let lastT = 0;
+  let confetti = [];
+
+  const INTERACT_RANGE = 92;
+  const PICKUP_RANGE = 78;
+
+  const touchMove = {up:false,down:false,left:false,right:false};
+  let sprintOn = false;
+
+  let dlgQueue = [];
+  let dlgVisible = false;
+  let currentChoices = null;
+
+  let minigameOpen = false;
+  let mgRunning = false;
+  let mgCursor = 0.2;
+  let mgDir = 1;
+  let mgGood = 0;
+  let mgMiss = 0;
+
+  let batActive = false;
+  let batX = 0, batY = 0;
+  let batHideAt = 0;
+  let nextBatAt = 0;
+
+  const player = { x: 120, y: 300, w: 18, h: 22, speed: 165 };
+  const got = new Set();
+
+  function setStatus(text, kind="warn"){
+    statusTag.textContent = text;
+    statusTag.className = `tag ${kind}`;
+  }
+
+  function updateHUD(){
+    const jinxed = performance.now() < jinxedUntil;
+    sceneLabel.textContent = `${sceneIndex+1} / 3`;
+    bitsEl.textContent = `${bits} / 3`;
+    starsEl.textContent = `${stars} / 3`;
+    mgDoneEl.textContent = minigameWon ? "done ✅" : "not yet";
+    jinxEl.textContent = jinxed ? "JINXED 😭" : "calm…";
+
+    const done = bits + stars + (minigameWon ? 1 : 0);
+    const pct = Math.round((done/7) * 100);
+    pFill.style.width = `${pct}%`;
+    pMeta.textContent = `${pct}% (${done}/7)`;
+  }
+
+  // Dialogue helpers
+  function line(who,text){ return {t:"line", who, text}; }
+  function act(fn){ return {t:"act", fn}; }
+  function choice(who, text, choices){ return {t:"choice", who, text, choices}; }
+  function seq(arr){ dialogueSequence(arr); }
+
+  function setDialoguePortrait(who){
+    const w = (who || "").toLowerCase();
+
+    let key = null;
+    if(w.includes("sonjukta")) key = "son";
+    else if(w.includes("tee")) key = "tee";
+    else if(w.includes("gregor")) key = "gregor";
+    else if(w.includes("batmantor") || w.includes("bat")) key = "bat";
+    else if(w.includes("narrator")) key = "tee";
+
+    // clear portrait box
+    dlgPortrait.innerHTML = "";
+
+    const img = IMG[key];
+    if(img){
+      const el = document.createElement("img");
+      el.src = img.src;
+      el.alt = who;
+      dlgPortrait.appendChild(el);
+    }
+  }
+
+
+  function dialogueSequence(arr){
+    dlgQueue = dlgQueue.concat(arr);
+    if(!dlgVisible) showDialogue();
+  }
+  function showDialogue(){
+    dlgVisible = true;
+    dlg.style.display = "block";
+    advanceDialogue();
+  }
+  function hideDialogue(){
+    dlgVisible = false;
+    dlg.style.display = "none";
+    dlgText.textContent = "";
+    dlgWho.textContent = "";
+    choicesEl.innerHTML = "";
+    currentChoices = null;
+    dlgPortrait.innerHTML = "";
+
+  }
+  function renderChoices(choices){
+    currentChoices = choices;
+    choicesEl.innerHTML = "";
+    for(const c of choices){
+      const b = document.createElement("button");
+      b.textContent = c.label;
+      b.className = "primary";
+      b.onclick = () => {
+        currentChoices = null;
+        choicesEl.innerHTML = "";
+        c.next?.();
+        advanceDialogue();
+      };
+      choicesEl.appendChild(b);
+    }
+  }
+  function advanceDialogue(){
+    if(currentChoices) return;
+    while(dlgQueue.length){
+      const it = dlgQueue.shift();
+      if(it.t==="act"){ it.fn?.(); continue; }
+            if(it.t==="line"){
+        // Tee as narrator
+        let who = it.who;
+        if((who || "").toLowerCase() === "narrator"){
+          who = "Tee (Narrator)";
+        }
+
+        dlgWho.textContent = who;
+        dlgText.textContent = it.text;
+        choicesEl.innerHTML = "";
+
+        setDialoguePortrait(who);
+        return;
+      }
+
+            if(it.t==="choice"){
+        let who = it.who;
+        if((who || "").toLowerCase() === "narrator"){
+          who = "Tee (Narrator)";
+        }
+
+        dlgWho.textContent = who;
+        dlgText.textContent = it.text;
+
+        setDialoguePortrait(who);
+        renderChoices(it.choices);
+        return;
+      }
+
+    }
+    hideDialogue();
+  }
+
+  // Confetti
+  function popConfetti(x,y){
+    for(let i=0;i<24;i++){
+      confetti.push({
+        x, y,
+        vx: (Math.random()*2-1)*140,
+        vy: (Math.random()*2-1)*160 - 60,
+        life: 0.8 + Math.random()*0.6,
+        t:0
+      });
+    }
+  }
+
+  // Mini-game
+  function openMiniGame(isFinal){
+    minigameOpen = true;
+    mg.style.display = "flex";
+    mgRunning = false;
+    mgGood = 0; mgMiss = 0;
+    mgCursor = Math.random();
+    mgDir = 1;
+    mgStartBtn.textContent = "Start";
+    mgHint.textContent = isFinal ? "Final singing moment ✨ You got this." : "Outplay the jinx 😈";
+    setStatus("🎤 Mini-Game", "warn");
+    renderMiniGame();
+  }
+  function closeMiniGame(){
+    minigameOpen = false;
+    mg.style.display = "none";
+    mgRunning = false;
+    setStatus(`🗺️ Scene ${sceneIndex+1}`, "warn");
+  }
+  function renderMiniGame(){
+    cursorEl.style.left = `${mgCursor*100}%`;
+    mgStats.textContent = `Good: ${mgGood}/5 • Miss: ${mgMiss}/4`;
+  }
+  function tapMiniGame(){
+    if(!minigameOpen || !mgRunning) return;
+    const inZone = (mgCursor >= 0.36 && mgCursor <= 0.64);
+    const isJinx = performance.now() < jinxedUntil;
+
+    if(inZone && !isJinx){
+      mgGood++;
+      popConfetti(480,260);
+      if(mgGood >= 5){
+        mgRunning = false;
+        mgStartBtn.textContent = "Start";
+        minigameWon = true;
+        renderMiniGame();
+        updateHUD();
+        seq([
+          line("Gregor","🎶 PERFECT!"),
+          line("Tee","Okay… final wish unlocked."),
+          act(()=>closeMiniGame()),
+          act(()=>setStatus("✨ Final unlocked", "good")),
+        ]);
+      }
+    } else {
+      mgMiss++;
+      if(isJinx) seq([ act(()=>playBatTone()), line("Batmantor","YOU GOT JINXED 😈") ]);
+      if(mgMiss >= 4){
+        mgRunning = false;
+        mgStartBtn.textContent = "Start";
+        mgHint.textContent = "Restart and try again 😤";
+      }
+    }
+    renderMiniGame();
+  }
+
+  mgStartBtn.onclick = () => {
+    if(!mgRunning){
+      mgRunning = true;
+      mgStartBtn.textContent = "Running…";
+    }
+  };
+  mgQuitBtn.onclick = closeMiniGame;
+  mgTapBtn.onclick = tapMiniGame;
+
+  // Jinx
+  function activateJinx(ms){
+    jinxedUntil = Math.max(jinxedUntil, performance.now()+ms);
+    updateHUD();
+    setStatus("😈 YOU GOT JINXED", "bad");
+    hint.innerHTML = `Jinx active… (mini-game speeds up) 😭`;
+    setTimeout(() => {
+      if(performance.now() >= jinxedUntil && started) setStatus(`🗺️ Scene ${sceneIndex+1}`, "warn");
+    }, ms+50);
+  }
+
+  // Scene helpers / objects
+  function baseObj(id, label, x,y, onInteract){
+    return { id, label, x,y, onInteract, glow:true };
+  }
+  function npc(imgKey, label, x,y, onInteract){
+    return { ...baseObj(`npc_${label}`, label, x,y, onInteract), type:"npc", imgKey };
+  }
+  function item(id, label, x,y, onInteract, spriteKey="bit"){
+    return { ...baseObj(id, label, x,y, onInteract), type:"item", spriteKey };
+  }
+  function gate(id, label, x,y, onInteract){
+    return { ...baseObj(id, label, x,y, onInteract), type:"gate" };
+  }
+  function star(id, label, x,y, joke){
+    return { ...baseObj(id, label, x,y, () => {
+      if(got.has(id)) return seq([line("Star","Already collected ✨")]);
+      got.add(id);
+      stars++;
+      popConfetti(x,y);
+      updateHUD();
+      seq([
+        line("Star", `🌟 You found ${label}!`),
+        line("Star", `Memory says: ${joke}`),
+      ]);
+    }), type:"star", spriteKey:"mstar" };
+  }
+
+  function collectBit(n){
+    const id = `bit${n}`;
+    if(got.has(id)) return seq([line("Bit","Already picked 😌")]);
+    got.add(id);
+    bits++;
+    popConfetti(player.x, player.y);
+    updateHUD();
+    seq([
+      line("Bit", `You collected Birthday Bit #${n} 🎂`),
+      line("Tee", bits>=3 ? "Okay! Now go to the gate → Memory Park!" : `Good. ${3-bits} bits left!`),
+    ]);
+  }
+
+  const scenes = [
+    {
+      key:"bg1",
+      name:"Cozy Garden",
+      walls: [rect(0,0,960,20), rect(0,520,960,20), rect(0,0,20,540), rect(940,0,20,540), rect(90,120,220,120)],
+      objects: [
+        npc("tee","Tee (you)", 260, 300, () => seq([
+          line("Tee", "Sonjuktaaaa 😭✨ HAPPY BIRTHDAY!"),
+          line("Tee", "Collect 3 Birthday Bits 🎂 (coins)."),
+          line("Tee", "Then we go to Memory Park → and later stage mode 🎤"),
+        ])),
+        npc("gregor","Gregor", 520, 330, () => seq([
+          line("Gregor", "Welcome! I am Gregor, official quest manager 😌"),
+          line("Gregor", "Collect 3 Birthday Bits. Then the gate opens."),
+        ])),
+        item("bit1","Bit #1", 740, 150, () => collectBit(1)),
+        item("bit2","Bit #2", 140, 430, () => collectBit(2)),
+        item("bit3","Bit #3", 740, 430, () => collectBit(3)),
+        gate("gate1","To Memory Park →", 910, 250, () => {
+          if(bits < 3) return seq([ line("Gate", `Need 3 Birthday Bits first. You have ${bits}/3.`) ]);
+          goScene(1);
+        }),
+      ]
+    },
+    {
+      key:"bg2",
+      name:"Memory Park",
+      walls: [rect(0,0,960,20), rect(0,520,960,20), rect(0,0,20,540), rect(940,0,20,540), rect(410,220,140,100)],
+      objects: [
+        npc("tee","Tee (you)", 190, 290, () => seq([
+          line("Tee", "Memory Hunt time 🌟"),
+          choice("Tee", "How are we feeling?", [
+            {label:"hmmmm i see 😌", next:()=>seq([ line("Tee", "hmmmm i see 😌") ])},
+            {label:"ayhay eta to amar berthota 😭", next:()=>seq([ line("Tee", "ayhay eta to amar berthota 😭") ])},
+          ]),
+        ])),
+        npc("gregor","Gregor", 720, 330, () => seq([
+          line("Gregor", "Collect 3 Memory Stars in this park."),
+        ])),
+        star("star1","Memory Star #1", 160, 140, "“kitne cool log hain inse kaise baate karoon”"),
+        star("star2","Memory Star #2", 770, 160, "“hmmmm i see”"),
+        star("star3","Memory Star #3", 520, 450, "“ayhay eta to amar berthota”"),
+        gate("gate2","To Stage →", 910, 250, () => {
+          if(stars < 3) return seq([ line("Door", `Collect 3 Memory Stars. You have ${stars}/3.`) ]);
+          goScene(2);
+        }),
+      ]
+    },
+    {
+      key:"bg3",
+      name:"Birthday Stage",
+      walls: [rect(0,0,960,20), rect(0,520,960,20), rect(0,0,20,540), rect(940,0,20,540)],
+      objects: [
+        npc("tee","Tee (you)", 260, 320, () => seq([
+          line("Tee", "Okay Sonjukta… stage time 🎤✨"),
+          line("Tee", "Do the singing mini-game… then the final wish."),
+          act(()=>openMiniGame(true)),
+        ])),
+        npc("gregor","Gregor", 650, 330, () => seq([
+          line("Gregor", "Win the singing mini-game to unlock the wish."),
+        ])),
+        gate("final","Final Wish →", 910, 250, () => {
+          if(!minigameWon) return seq([ line("Stage", "Sing first 😭 (talk to Tee) then come back!") ]);
+          finalWish();
+        }),
+      ]
+    }
+  ];
+
+  function goScene(i){
+    sceneIndex = clamp(i,0,2);
+    player.x = 90; player.y = 300;
+    setStatus(`🗺️ Scene ${sceneIndex+1}: ${scenes[sceneIndex].name}`, "warn");
+    hint.innerHTML = sceneIndex===0
+      ? `Collect <b>3 Birthday Bits</b> then go to gate →`
+      : sceneIndex===1
+        ? `Collect <b>3 Memory Stars</b>. Batmantor may jumpscare 😈`
+        : `Talk to Tee → mini-game → Final Wish ✨`;
+    scheduleNextBat();
+    updateHUD();
+  }
+
+  function scheduleNextBat(){
+    const now = performance.now();
+    if(sceneIndex > 1) { nextBatAt = Infinity; return; }
+    nextBatAt = now + (6000 + Math.random()*8000);
+  }
+
+  function intro(){
+    seq([
+      line("Narrator","A cozy pixel world appears…"),
+      line("Narrator","And Sonjukta arrives ✨"),
+      line("Tee (you)","Happy Birthdayyyyy to youuuuuuuuuuuuuuuuuuuu 😭✨"),
+      line("Gregor","Welcome. Collect 3 Birthday Bits in this garden."),
+      line("Tee (you)","Tap Play Song if you want her voice playing 🎶"),
+    ]);
+  }
+
+  function finalWish(){
+    setStatus("🎂 Final Wish", "good");
+    seq([
+      line("Narrator","The stage lights glow softly…"),
+      act(()=>playSongOnce()),
+      line("Sonjukta","🎶 (singing)"),
+      line("Tee (you)","Sonjukta… listen 😭"),
+      line("Tee (you)",
+`Happy Birthdayyyy to youuuuuuuuuuuuuuuuuuuu
+May Allah bless you
+
+One more year closer to death sighs (not quite a thing to say in a birthday wish)
+yet you gotta bloom
+so that shobai jeno bole
+ayyyhayyy eta to amader berthotaaaaa`),
+      line("Tee (you)",
+`I want to thank you actually
+for being there
+I have never been close to someone so quickly
+I never thought uni er last stage e eshe ekta friend paabo`),
+      line("Tee (you)",
+`Thanks for always hanging there with me
+bearing my nonsense
+I am serious (or am I??)
+th kinda emotional lagche ehehehehheeh
+not a Tee thing to do 😭`),
+      line("Tee (you)",
+`I don’t even do birthday wishes
+ig I am not that bad at it
+
+I really admire and appreciate you for whom you are
+and gaaner kotha na hoy ajke baad e dilam 😌`),
+      line("Tee (you)","Once again Happy Birthday Sonjukta 🎂✨"),
+      line("Batmantor","YOU GOT JINXED 😈 (but only with love 💙)"),
+      act(()=>popConfetti(480,220)),
+      act(()=>popConfetti(520,240)),
+      act(()=>popConfetti(440,260)),
+      line("Narrator","Restart anytime to play again ✨")
+    ]);
+  }
+
+  function nearestObject(range){
+    const s = scenes[sceneIndex];
+    let best=null, bestD=9999;
+    for(const o of s.objects){
+      if((o.type==="item" && got.has(o.id)) || (o.type==="star" && got.has(o.id))) continue;
+      const d = dist(player.x, player.y, o.x, o.y);
+      if(d < bestD && d < range){ bestD=d; best=o; }
+    }
+    return best;
+  }
+
+  function tryInteract(){
+    if(!started || dlgVisible || minigameOpen) return;
+    const obj = nearestObject(INTERACT_RANGE);
+    if(obj) obj.onInteract?.();
+  }
+
+  function move(dt){
+    const sprint = (keys.has("shift") || sprintOn) ? 1.45 : 1.0;
+    let vx=0, vy=0;
+
+    if(keys.has("w") || keys.has("arrowup")) vy -= 1;
+    if(keys.has("s") || keys.has("arrowdown")) vy += 1;
+    if(keys.has("a") || keys.has("arrowleft")) vx -= 1;
+    if(keys.has("d") || keys.has("arrowright")) vx += 1;
+
+    if(touchMove.up) vy -= 1;
+    if(touchMove.down) vy += 1;
+    if(touchMove.left) vx -= 1;
+    if(touchMove.right) vx += 1;
+
+    const len = Math.hypot(vx,vy) || 1;
+    vx = (vx/len) * player.speed * sprint;
+    vy = (vy/len) * player.speed * sprint;
+
+    const s = scenes[sceneIndex];
+    const p = {x:player.x, y:player.y, w:player.w, h:player.h};
+
+    p.x = clamp(p.x + vx*dt, 0, 960-player.w);
+    for(const w of s.walls) if(aabb(p,w)) p.x = player.x;
+    player.x = p.x;
+
+    p.y = clamp(p.y + vy*dt, 0, 540-player.h);
+    for(const w of s.walls) if(aabb(p,w)) p.y = player.y;
+    player.y = p.y;
+
+    const obj = nearestObject(PICKUP_RANGE);
+    if(obj && (obj.type==="item" || obj.type==="star")) obj.onInteract?.();
+  }
+
+  function rr(x,y,w,h,r){
+    const rad = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rad, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rad);
+    ctx.arcTo(x+w, y+h, x, y+h, rad);
+    ctx.arcTo(x, y+h, x, y, rad);
+    ctx.arcTo(x, y, x+w, y, rad);
+    ctx.closePath();
+  }
+  function drawSprite(img, cx, cy, size){
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, cx - size/2, cy - size/2, size, size);
+  }
+
+  function draw(){
+    const cssW = cv.clientWidth;
+    const cssH = cv.clientHeight;
+
+    ctx.save();
+    ctx.clearRect(0,0,cssW,cssH);
+
+    const sx = cssW / BASE_W;
+    const sy = cssH / BASE_H;
+    ctx.scale(sx, sy);
+
+    const bgKey = scenes[sceneIndex].key;
+    if(IMG[bgKey]){
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(IMG[bgKey], 0, 0, BASE_W, BASE_H);
+    } else {
+      ctx.fillStyle = "rgba(255,255,255,0.05)";
+      ctx.fillRect(0,0,BASE_W,BASE_H);
+    }
+
+    const s = scenes[sceneIndex];
+    for(const o of s.objects){
+      if((o.type==="item" && got.has(o.id)) || (o.type==="star" && got.has(o.id))) continue;
+
+      const pulseA = 0.10 + Math.sin(performance.now()/180)*0.06;
+      if(o.glow){
+        ctx.fillStyle = `rgba(255,209,102,${pulseA})`;
+        rr(o.x-22, o.y-26, 44, 52, 10);
+        ctx.fill();
+      }
+
+      if(o.type==="npc" && IMG[o.imgKey]) drawSprite(IMG[o.imgKey], o.x, o.y, 56);
+      else if(o.type==="item" && IMG[o.spriteKey]) drawSprite(IMG[o.spriteKey], o.x, o.y, 38);
+      else if(o.type==="star" && IMG[o.spriteKey]) drawSprite(IMG[o.spriteKey], o.x, o.y, 40);
+      else {
+        ctx.fillStyle = "rgba(255,255,255,0.12)";
+        rr(o.x-16, o.y-16, 32, 32, 8);
+        ctx.fill();
+      }
+
+      ctx.font = "12px system-ui, sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.88)";
+      ctx.textAlign = "center";
+      ctx.fillText(o.label, o.x, o.y - 34);
+    }
+
+    if(batActive && IMG.bat){
+      const pulseA = 0.12 + Math.sin(performance.now()/120)*0.08;
+      ctx.fillStyle = `rgba(255,77,109,${pulseA})`;
+      rr(batX-34, batY-40, 68, 86, 14); ctx.fill();
+      drawSprite(IMG.bat, batX, batY, 70);
+      ctx.font = "bold 14px system-ui, sans-serif";
+      ctx.fillStyle = "rgba(255,209,102,0.95)";
+      ctx.textAlign = "center";
+      ctx.fillText("YOU GOT JINXED 😈", batX, batY - 54);
+    }
+
+    if(IMG.son) drawSprite(IMG.son, player.x + player.w/2, player.y + player.h/2, 58);
+    else { ctx.fillStyle = "rgba(42,60,255,0.35)"; rr(player.x, player.y, player.w, player.h, 6); ctx.fill(); }
+
+    if(performance.now() < jinxedUntil){
+      ctx.font = "bold 14px system-ui, sans-serif";
+      ctx.fillStyle = "rgba(255,209,102,0.95)";
+      ctx.textAlign = "center";
+      ctx.fillText("YOU GOT JINXED 😈", player.x + player.w/2, player.y - 10);
+    }
+
+    for(const p of confetti){
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      ctx.fillRect(p.x, p.y, 3, 3);
+    }
+
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = "rgba(0,0,0,0.30)";
+    rr(12, 12, 420, 54, 12); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.86)";
+    ctx.font = "bold 13px system-ui, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(`Scene ${sceneIndex+1}: ${s.name}  •  Tap/E to interact`, 22, 35);
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.font = "12px system-ui, sans-serif";
+    ctx.fillText(`Bits ${bits}/3  Stars ${stars}/3  •  Progress ${pMeta.textContent}`, 22, 52);
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  function spawnBatmantor(){
+    batActive = true;
+    playBatTone();
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 120 + Math.random()*80;
+    batX = clamp(player.x + Math.cos(angle)*radius, 70, 890);
+    batY = clamp(player.y + Math.sin(angle)*radius, 90, 470);
+    batHideAt = performance.now() + 1700;
+    activateJinx(1800);
+  }
+
+  function step(t){
+    if(!lastT) lastT = t;
+    const dt = Math.min(0.033, (t-lastT)/1000);
+    lastT = t;
+
+    if(minigameOpen && mgRunning){
+      const isJinx = performance.now() < jinxedUntil;
+      const speed = isJinx ? 1.35 : 1.0;
+      mgCursor += mgDir * dt * 0.86 * speed;
+      if(mgCursor >= 1){ mgCursor = 1; mgDir = -1; }
+      if(mgCursor <= 0){ mgCursor = 0; mgDir = 1; }
+      cursorEl.style.left = `${mgCursor*100}%`;
+    }
+
+    if(started && !dlgVisible && !minigameOpen && sceneIndex <= 1){
+      const now = performance.now();
+      if(!batActive && now >= nextBatAt) spawnBatmantor();
+      if(batActive && now >= batHideAt){
+        batActive = false;
+        scheduleNextBat();
+        setStatus(`🗺️ Scene ${sceneIndex+1}: ${scenes[sceneIndex].name}`, "warn");
+      }
+    }
+
+    if(started && !dlgVisible && !minigameOpen) move(dt);
+
+    confetti = confetti.filter(p => (p.t += dt) < p.life);
+    for(const p of confetti){
+      p.vy += 220*dt;
+      p.x += p.vx*dt;
+      p.y += p.vy*dt;
+    }
+
+    updateHUD();
+    draw();
+    requestAnimationFrame(step);
+  }
+
+  // Input
+  const keys = new Set();
+  window.addEventListener("keydown", (e)=>{
+    const k = e.key.toLowerCase();
+    if(["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","e"," ","shift"].includes(k)) e.preventDefault();
+
+    if(dlgVisible && k===" "){ advanceDialogue(); return; }
+    if(minigameOpen && k===" "){ tapMiniGame(); return; }
+
+    keys.add(k);
+    if(k==="e") tryInteract();
+  }, {passive:false});
+  window.addEventListener("keyup", (e)=> keys.delete(e.key.toLowerCase()));
+
+  // Touch controls
+  function setDir(dir, val){
+    touchMove.up = (dir==="up" ? val : touchMove.up);
+    touchMove.down = (dir==="down" ? val : touchMove.down);
+    touchMove.left = (dir==="left" ? val : touchMove.left);
+    touchMove.right = (dir==="right" ? val : touchMove.right);
+  }
+  document.querySelectorAll(".tbtn").forEach(btn=>{
+    const dir = btn.getAttribute("data-dir");
+    const down = (e)=>{ e.preventDefault(); setDir(dir,true); };
+    const up = (e)=>{ e.preventDefault(); setDir(dir,false); };
+    btn.addEventListener("pointerdown", down);
+    btn.addEventListener("pointerup", up);
+    btn.addEventListener("pointercancel", up);
+    btn.addEventListener("pointerleave", up);
+  });
+
+  touchInteract.addEventListener("pointerdown", (e)=>{ e.preventDefault(); tryInteract(); });
+  touchNext.addEventListener("pointerdown", (e)=>{ e.preventDefault(); if(dlgVisible) advanceDialogue(); });
+  touchJinx.addEventListener("pointerdown", (e)=>{ e.preventDefault(); activateJinx(1600); });
+  touchSprint.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();
+    sprintOn = !sprintOn;
+    touchSprint.textContent = `Sprint: ${sprintOn ? "ON" : "OFF"}`;
+  });
+
+  cv.addEventListener("pointerdown", ()=>{
+    if(dlgVisible){ advanceDialogue(); return; }
+    if(minigameOpen){ tapMiniGame(); return; }
+    tryInteract();
+  });
+
+  // Buttons
+  startBtn.onclick = async () => {
+    if(started) return;
+    resizeCanvas();
+    setStatus("📦 Loading images…", "warn");
+    const missing = await loadAllAssets();
+
+    if(missing.length){
+      setStatus("⚠️ Missing images", "bad");
+      hint.innerHTML = `Missing in <b>assets/</b>:<br><b>${missing.join("</b>, <b>")}</b>`;
+    } else {
+      setStatus("✅ Loaded", "good");
+      hint.innerHTML = `Tip: Tap the canvas to interact. Collect items faster 😌`;
+    }
+
+    started = true;
+    goScene(0);
+    intro();
+
+    // Don’t autoplay song; it will play during Sonjukta's singing (final segment) or via the button.
+    try{ song.pause(); song.currentTime = 0; } catch {}
+  };
+
+  function resetAll(){
+    started = false;
+    sceneIndex = 0;
+    bits = 0;
+    stars = 0;
+    got.clear();
+    minigameWon = false;
+    jinxedUntil = 0;
+    dlgQueue = [];
+    hideDialogue();
+    closeMiniGame();
+    confetti = [];
+    batActive = false;
+    nextBatAt = 0;
+    player.x = 120; player.y = 300;
+    sprintOn = false;
+    touchSprint.textContent = "Sprint: OFF";
+    updateHUD();
+    setStatus("⏳ Ready", "warn");
+    hint.innerHTML = `Press <b>Start Story</b> (PC or phone).`;
+    try{ song.pause(); song.currentTime = 0; } catch {}
+    songBtn.textContent = "Play Song ▶";
+  }
+
+  restartBtn.onclick = resetAll;
+  jinxBtn.onclick = () => activateJinx(1600);
+
+  dlg.addEventListener("pointerdown", ()=>{ if(dlgVisible && !currentChoices) advanceDialogue(); });
+
+  function boot(){
+    resizeCanvas();
+    resetAll();
+    requestAnimationFrame(step);
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
